@@ -48,18 +48,18 @@ Attribution
 
 If you happen to use pyRMT in your work or research, please cite its GitHub repository:
 
-ScientificCoder, pyRMT, (2017), GitHub repository, https://github.com/ScientificCoder/pyRMT
+G. Giecold, pyRMT, (2017), GitHub repository, https://github.com/GGiecold/pyRMT
 
 The respective BibTex entry is
 
 ```
-@misc{ScientificCoder2017,
-  author = {ScientificCoder},
+@misc{GregoryGiecold2017,
+  author = {G. Giecold},
   title = {pyRMT},
   year = {2017},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/ScientificCoder/pyRMT}}
+  howpublished = {\url{https://github.com/GGiecold/pyRMT}}
 }
 ```
 
@@ -67,6 +67,6 @@ The respective BibTex entry is
 License
 -------
 
-Copyright 2017-2022 ScientificCoder and contributors.
+Copyright 2017-2022 Gregory Giecold and contributors.
 
 pyRMT is free software made available under the MIT License. For details see the LICENSE file.
