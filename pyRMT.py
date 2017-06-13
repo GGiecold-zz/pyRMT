@@ -70,9 +70,9 @@ from sklearn.covariance import EmpiricalCovariance
 from sklearn.preprocessing import StandardScaler
 
 
-__author__ = 'ScientificCoder'
-__copyright__ = 'Copyright 2017-2022 ScientificCoder and contributors'
-__credit__ = 'ScientificCoder'
+__author__ = 'Gregory Giecold'
+__copyright__ = 'Copyright 2017-2022 Gregory Giecold and contributors'
+__credit__ = 'Gregory Giecold'
 __status__ = 'beta'
 __version__ = '0.1.0'
 
