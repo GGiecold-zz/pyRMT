@@ -1,5 +1,6 @@
 #!/usr/bin/env python
-#
+# -*- coding: utf-8 -*-
+
 
 from codecs import open
 from os import path
@@ -13,27 +14,27 @@ with open(path.join(here, 'README'), encoding = 'utf-8') as f:
     long_description = f.read()
     
 
-setup(name = 'Concurrent_AP',
-      version = '1.4',
+setup(name = 'pyRMT',
+      version = '0.1.0',
       
-      description = 'Scalable and parallel programming implementation of Affinity Propagation clustering',
+      description = 'Python for Random Matrix Theory',
       long_description = long_description,
                     
-      url = 'https://github.com/GGiecold/Concurrent_AP',
-      download_url = 'https://github.com/GGiecold/Concurrent_AP',
+      url = 'https://github.com/GGiecold/pyRMT',
+      download_url = 'https://github.com/GGiecold/pyRMT',
       
       author = 'Gregory Giecold',
       author_email = 'g.giecold@gmail.com',
       maintainer = 'Gregory Giecold',
-      maintainer_email = 'ggiecold@jimmy.harvard.edu',
+      maintainer_email = 'g.giecold@gmail.com',
       
       license = 'MIT License',
       
       packages = find_packages(),
       
-      py_modules = ['Concurrent_AP'],
+      py_modules = ['pyRMT'],
       platforms = ('Any',),
-      install_requires = ['numpy>=1.9.0', 'psutil', 'sklearn', 'setuptools', 'tables'],
+      install_requires = ['numpy>=1.13'],
                           
       classifiers = ['Development Status :: 4 - Beta',
                    'Environment :: Console',
@@ -42,16 +43,14 @@ setup(name = 'Concurrent_AP',
                    'Intended Audience :: Science/Research',          
                    'License :: OSI Approved :: MIT License',
                    'Natural Language :: English',
-                   'Operating System :: MacOS :: MacOS X',
-                   'Operating System :: POSIX',
-                   'Programming Language :: Python :: 2.7',
+                   'Operating System :: OS Independent',
+                   'Programming Language :: Python',
                    'Topic :: Scientific/Engineering',
-                   'Topic :: Scientific/Engineering :: Visualization',
                    'Topic :: Scientific/Engineering :: Mathematics', ],
                    
-      keywords = 'parallel multiprocessing machine-learning concurrent clustering',
+      keywords = 'applied-mathematics cleaning-schemes correlation-matrices random-matrix-theory',
       
       entry_points = {
-          'console_scripts': ['Concurrent_AP = Concurrent_AP:main'],
+          'console_scripts': ['pyRMT = pyRMT:main'],
           }    
 )
