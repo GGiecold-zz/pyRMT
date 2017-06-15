@@ -48,5 +48,5 @@ setup(name = 'pyRMT',
                    'Topic :: Scientific/Engineering',
                    'Topic :: Scientific/Engineering :: Mathematics', ],
                    
-      keywords = 'applied-mathematics cleaning correlation-matrices noise-reduction random-matrix-theory',
+      keywords = 'applied-mathematics cleaning correlation-matrices noise-reduction random-matrix-theory'
 )
