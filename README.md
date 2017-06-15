@@ -42,7 +42,12 @@ References
 * "Cleaning large Correlation Matrices: tools from Random Matrix Theory",
   J. Bun, J.-P. Bouchaud and M. Potters, arXiv: 1610.08104 [cond-mat.stat-mech]
   
+Installation
+------------
 
+Usage
+-----
+  
 Attribution
 -----------
 
