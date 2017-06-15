@@ -49,8 +49,4 @@ setup(name = 'pyRMT',
                    'Topic :: Scientific/Engineering :: Mathematics', ],
                    
       keywords = 'applied-mathematics cleaning correlation-matrices noise-reduction random-matrix-theory',
-      
-      entry_points = {
-          'console_scripts': ['pyRMT = pyRMT:main'],
-          }    
 )
