@@ -55,10 +55,11 @@ References
   arXiv: 1610.08104 [cond-mat.stat-mech]
 """
 
-
+from __future__ import division, print_function
+from builtins import reversed
+from builtins import map, zip
 from collections import MutableSequence, Sequence
 import copy
-from itertools import imap, izip
 from math import ceil
 from numbers import Complex, Integral, Real
 import sys
@@ -265,7 +266,7 @@ def clipped(X, alpha=None, return_covariance=False):
     xi_clipped = np.where(np.isnan(xi_clipped), gamma, xi_clipped)
 
     E_clipped = np.zeros((N, N), dtype=float)
-    for xi, eigvec in izip(xi_clipped, eigvecs):
+    for xi, eigvec in zip(xi_clipped, eigvecs):
         eigvec = eigvec.reshape(-1, 1)
         E_clipped += xi * eigvec.dot(eigvec.T)
         
@@ -547,12 +548,12 @@ def optimalShrinkage(X, return_covariance=False):
                            # matrix - namely np.linalg.eigh - returns
                            # the eigenvalues in ascending order.
 
-    xis = imap(lambda x: xiHelper(x, q, E), eigvals)
-    Gammas = imap(lambda x: gammaHelper(x, q, N, lambda_N), eigvals)
-    xi_hats = imap(lambda a, b: a * b if b > 1 else a, xis, Gammas)
+    xis = map(lambda x: xiHelper(x, q, E), eigvals)
+    Gammas = map(lambda x: gammaHelper(x, q, N, lambda_N), eigvals)
+    xi_hats = map(lambda a, b: a * b if b > 1 else a, xis, Gammas)
 
     E_RIE = np.zeros((N, N), dtype=float)
-    for xi_hat, eigvec in izip(xi_hats, eigvecs):
+    for xi_hat, eigvec in zip(xi_hats, eigvecs):
         eigvec = eigvec.reshape(-1, 1)
         E_RIE += xi_hat * eigvec.dot(eigvec.T)
         
