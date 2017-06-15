@@ -48,7 +48,7 @@ Installing from PyPI
 Try
 ```pip install pyRMT```
 
-To install manually from the git repo, try this:
+To install manually from the git repo, try this
 ```python setup.py install```
 
 The pyRMT codebase supports Python 2 and 3.
