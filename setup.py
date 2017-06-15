@@ -34,7 +34,7 @@ setup(name = 'pyRMT',
       
       py_modules = ['pyRMT'],
       platforms = ('Any',),
-      install_requires = ['numpy>=1.13'],
+      install_requires = ['numpy', 'pandas', 'sklearn'],
                           
       classifiers = ['Development Status :: 4 - Beta',
                    'Environment :: Console',
