@@ -42,11 +42,21 @@ References
 * "Cleaning large Correlation Matrices: tools from Random Matrix Theory",
   J. Bun, J.-P. Bouchaud and M. Potters, arXiv: 1610.08104 [cond-mat.stat-mech]
   
-Installation
-------------
+Installing from PyPI
+--------------------
+
+Try
+```pip install pyRMT```
+
+To install manually from the git repo, try this:
+```python setup.py install```
+
+The pyRMT codebase supports Python 2 and 3.
 
 Usage
 -----
+
+For more information on cleaning your correlation matrices, please refer to the docstrings to the various schemes implemented within pyRMT.
   
 Attribution
 -----------
