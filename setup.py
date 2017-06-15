@@ -17,7 +17,7 @@ with open(path.join(here, 'README'), encoding = 'utf-8') as f:
 setup(name = 'pyRMT',
       version = '0.1.0',
       
-      description = 'Python for Random Matrix Theory',
+      description = 'Python for Random Matrix Theory: cleaning schemes for noisy correlation matrices',
       long_description = long_description,
                     
       url = 'https://github.com/GGiecold/pyRMT',
