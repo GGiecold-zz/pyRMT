@@ -81,8 +81,8 @@ __status__ = 'beta'
 __version__ = '0.1.0'
 
 
-__all__ = ['clipped', 'direct_kernel', 'marcenkoPastur', 
-           'optimalShrinkage', 'pool_adjacent_violators', 
+__all__ = ['clipped', 'directKernel', 'marcenkoPastur', 
+           'optimalShrinkage', 'poolAdjacentViolators', 
            'stieltjes']
 
 
@@ -588,7 +588,7 @@ def optimalShrinkage(X, return_covariance=False, method='rie'):
         xi_hats = map(lambda a, b: a * b if b > 1 else a, xis, Gammas)
         lambda_hats = xi_hats
     else:
-         lambda_hats = direct_kernel(q, T, N, eigvals)
+         lambda_hats = directKernel(q, T, N, eigvals)
         
     E_RIE = np.zeros((N, N), dtype=float)
     for lambda_hat, eigvec in zip(lambda_hats, eigvecs):
@@ -607,7 +607,7 @@ def optimalShrinkage(X, return_covariance=False, method='rie'):
     return E_RIE
 
   
-def direct_kernel(q, T, N, eigvals):
+def directKernel(q, T, N, eigvals):
     """This function computes a non linear shrinkage estimator of a covariance marix
        based on the spectral distribution of its eigenvalues and that of its Hilbert Tranform.
        This is an extension of Ledoit & Péché(2011).
@@ -661,14 +661,14 @@ def direct_kernel(q, T, N, eigvals):
         dtilde1 = lmbda / ((np.pi ** 2) * (lmbda ** 2) * (ftilde ** 2 + Hftilde ** 2))  # Equation (C.4)
         dtilde = np.concatenate(np.dot(dtilde0, np.ones(N - T, 1, np.float)), dtilde1)
         
-    dhats = pool_adjacent_violators(dtilde) # Equation (4.5)
+    dhats = poolAdjacentViolators(dtilde) # Equation (4.5)
     
     return dhats
 
   
 # Author : Alexandre Gramfort
 # license : BSD
-def pool_adjacent_violators(y):
+def poolAdjacentViolators(y):
     """
     PAV uses the pair adjacent violators method to produce a monotonic
     smoothing of y
