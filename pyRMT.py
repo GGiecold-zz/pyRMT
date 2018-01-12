@@ -498,8 +498,8 @@ def optimalShrinkage(X, return_covariance=False, method='rie'):
          This is a direct port of their Matlab code.
         
          
-       Parameter
-       ---------
+       Parameters
+       ----------
        X: design matrix, of shape (T, N), where T denotes the number
            of samples (think measurements in a time series), while N
            stands for the number of features (think of stock tickers).
@@ -543,7 +543,6 @@ def optimalShrinkage(X, return_covariance=False, method='rie'):
          arXiv: 1610.08104 [cond-mat.stat-mech]
        4 "Direct Nonlinear Shrinkage Estimation of Large-Dimensional Covariance Matrices (September 2017)", 
          O. Ledoit and M. Wolf https://ssrn.com/abstract=3047302 or http://dx.doi.org/10.2139/ssrn.3047302
- 
     """
     
     try:
@@ -616,8 +615,8 @@ def directKernel(q, T, N, eigvals):
        uses the Pool Adjacent Violators (PAV) algorithm by Alexandre Gramfort 
        (EMAP toolbox). See below for a Python implementation of PAV.
                 
-       Parameter
-       ---------
+       Parameters
+       ----------
        q: type derived from numbers.Real
            Ratio of N/T
            
@@ -639,8 +638,8 @@ def directKernel(q, T, N, eigvals):
          O. Ledoit and S. Peche (2011)
        * "Direct Nonlinear Shrinkage Estimation of Large-Dimensional Covariance Matrices (September 2017)", 
          O. Ledoit and M. Wolf https://ssrn.com/abstract=3047302 or http://dx.doi.org/10.2139/ssrn.3047302
- 
     """
+    
     # compute direct kernel estimator
     lmbda = eigvals[max(0, N - T):].T  # transpose to have a column vector
     h = np.power(T, -0.35)  # Equation (5.4)
@@ -670,10 +669,10 @@ def directKernel(q, T, N, eigvals):
 # license : BSD
 def poolAdjacentViolators(y):
     """
-    PAV uses the pair adjacent violators method to produce a monotonic
-    smoothing of y
-    translated from matlab by Sean Collins (2006) as part of the EMAP toolbox
+    PAV uses the pool adjacent violators method to produce a monotonic smoothing of y.
+    Translated from matlab by Sean Collins (2006), and part of the EMAP toolbox.
     """
+    
     y = np.asarray(y)
     assert y.ndim == 1
     n_samples = len(y)
@@ -681,8 +680,7 @@ def poolAdjacentViolators(y):
     lvls = np.arange(n_samples)
     lvlsets = np.c_[lvls, lvls]
     
-    flag = 1
-    while flag:
+    while True:
         deriv = np.diff(v)
         if np.all(deriv >= 0):
             break
