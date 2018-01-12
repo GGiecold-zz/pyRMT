@@ -69,20 +69,20 @@ import sys
 import warnings
 
 import numpy as np
-from numpy import matlib
 import pandas as pd
 from sklearn.covariance import EmpiricalCovariance
 from sklearn.preprocessing import StandardScaler
 
 
-__author__ = 'Gregory Giecold'
+__author__ = 'Gregory Giecold and Lionel Ouaknin'
 __copyright__ = 'Copyright 2017-2022 Gregory Giecold and contributors'
-__credit__ = 'Gregory Giecold'
+__credit__ = 'Gregory Giecold and Lionel Ouaknin'
 __status__ = 'beta'
 __version__ = '0.1.0'
 
 
-__all__ = ['clipped', 'marcenkoPastur', 'optimalShrinkage',
+__all__ = ['clipped', 'direct_kernel', 'marcenkoPastur', 
+           'optimalShrinkage', 'pool_adjacent_violators', 
            'stieltjes']
 
 
@@ -579,13 +579,14 @@ def optimalShrinkage(X, return_covariance=False, method='rie'):
                            # the spectrum of a Hermitian or symmetric
                            # matrix - namely np.linalg.eigh - returns
                            # the eigenvalues in ascending order.
-    lambda_hats=None
-    if not method == 'kernel':
-        use_inverse_wishart= (method=='iw')
+    lambda_hats = None
+    
+    if method is not 'kernel':
+        use_inverse_wishart = (method == 'iw')
         xis = map(lambda x: xiHelper(x, q, E), eigvals)
-        Gammas = map(lambda x: gammaHelper(x, q, N, lambda_N,inverse_wishart=use_inverse_wishart), eigvals)
+        Gammas = map(lambda x: gammaHelper(x, q, N, lambda_N, inverse_wishart=use_inverse_wishart), eigvals)
         xi_hats = map(lambda a, b: a * b if b > 1 else a, xis, Gammas)
-        lambda_hats= xi_hats
+        lambda_hats = xi_hats
     else:
          lambda_hats = direct_kernel(q, T, N, eigvals)
         
@@ -605,14 +606,15 @@ def optimalShrinkage(X, return_covariance=False, method='rie'):
 
     return E_RIE
 
+  
 def direct_kernel(q, T, N, eigvals):
     """This function computes a non linear shrinkage estimator of a covariance marix
        based on the spectral distribution of its eigenvalues and that of its Hilbert Tranform.
        This is an extension of Ledoit & Péché(2011).
        
        This is a port of the Matlab code provided by O. Ledoit and M .Wolf. This port 
-       uses the Pool Adjacent Violatator (PAV) algorithm by  Alexandre Gramfort 
-       (EMAP toolbox)
+       uses the Pool Adjacent Violators (PAV) algorithm by Alexandre Gramfort 
+       (EMAP toolbox). See below for a Python implementation of PAV.
                 
        Parameter
        ---------
@@ -643,7 +645,7 @@ def direct_kernel(q, T, N, eigvals):
     lmbda = eigvals[max(0, N - T):].T  # transpose to have a column vector
     h = np.power(T, -0.35)  # Equation (5.4)
     h2 = h ** 2
-    L = matlib.repmat(lmbda, N, 1).T
+    L = np.matlib.repmat(lmbda, N, 1).T
     Lt = L.transpose()
     square_Lt = h2 * (Lt ** 2)
     zero = np.zeros((N, N))
@@ -658,13 +660,15 @@ def direct_kernel(q, T, N, eigvals):
         dtilde0 = 1 / (np.pi * (N - T) / T * Hftilde0)  # Equation (C.5)
         dtilde1 = lmbda / ((np.pi ** 2) * (lmbda ** 2) * (ftilde ** 2 + Hftilde ** 2))  # Equation (C.4)
         dtilde = np.concatenate(np.dot(dtilde0, np.ones(N - T, 1, np.float)), dtilde1)
-    dhats = pav(dtilde) # Equation (4.5)
+        
+    dhats = pool_adjacent_violators(dtilde) # Equation (4.5)
     
     return dhats
 
+  
 # Author : Alexandre Gramfort
 # license : BSD
-def pav(y):
+def pool_adjacent_violators(y):
     """
     PAV uses the pair adjacent violators method to produce a monotonic
     smoothing of y
@@ -676,6 +680,7 @@ def pav(y):
     v = y.copy()
     lvls = np.arange(n_samples)
     lvlsets = np.c_[lvls, lvls]
+    
     flag = 1
     while flag:
         deriv = np.diff(v)
@@ -695,8 +700,10 @@ def pav(y):
             v[i] = val
             lvlsets[i, 0] = start
             lvlsets[i, 1] = last
+            
     return v
 
+  
 if __name__ == '__main__':
 
     pass
