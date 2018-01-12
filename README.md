@@ -41,7 +41,10 @@ References
   J. Bun, R. Allez, J.-P. Bouchaud and M. Potters, arXiv: 1502.06736 [cond-mat.stat-mech]
 * "Cleaning large Correlation Matrices: tools from Random Matrix Theory",
   J. Bun, J.-P. Bouchaud and M. Potters, arXiv: 1610.08104 [cond-mat.stat-mech]
-  
+* "Direct Nonlinear Shrinkage Estimation of Large-Dimensional Covariance Matrices (September 2017)", 
+  O. Ledoit and M. Wolf https://ssrn.com/abstract=3047302 or http://dx.doi.org/10.2139/ssrn.3047302
+ 
+ 
 Installing from PyPI
 --------------------
 

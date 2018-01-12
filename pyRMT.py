@@ -53,6 +53,9 @@ References
 * "Cleaning large Correlation Matrices: tools from Random Matrix Theory",
   J. Bun, J.-P. Bouchaud and M. Potters
   arXiv: 1610.08104 [cond-mat.stat-mech]
+* "Direct Nonlinear Shrinkage Estimation of Large-Dimensional Covariance Matrices (September 2017)", 
+  O. Ledoit and M. Wolf https://ssrn.com/abstract=3047302 or http://dx.doi.org/10.2139/ssrn.3047302
+ 
 """
 
 from __future__ import division, print_function
@@ -66,6 +69,7 @@ import sys
 import warnings
 
 import numpy as np
+from numpy import matlib
 import pandas as pd
 from sklearn.covariance import EmpiricalCovariance
 from sklearn.preprocessing import StandardScaler
@@ -377,7 +381,7 @@ def xiHelper(x, q, E):
     return xi
 
 
-def gammaHelper(x, q, N, lambda_N):
+def gammaHelper(x, q, N, lambda_N, inverse_wishart=False):
     """Helper function to optimalShrinkage function defined below.
 
        The eigenvalue to the cleaned estimator of a true correlation
@@ -411,6 +415,9 @@ def gammaHelper(x, q, N, lambda_N):
        lambda_N: type derived from numbers.Real
            Smallest eigenvalue from the spectrum of an empirical
            estimate to a correlation matrix.
+        
+       inverse_wishart: type bool default: False
+            Wether to use inverse wishart regularization
 
        Returns
        ------
@@ -449,12 +456,19 @@ def gammaHelper(x, q, N, lambda_N):
 
     Gamma = abs(1 - q + q * z * gmp)**2
     Gamma *= sigma_2
-    Gamma /= x
-
+    
+    if inverse_wishart:
+        kappa = 2 * lambda_N / ((1 - q - lambda_N) ** 2 - 4 * q * lambda_N)
+        alpha_s = 1 / (1 + 2 * q * kappa)
+        denom = x / (1 + alpha_s * (x - 1.))
+        Gamma /= denom
+    else: 
+        Gamma /= x
+    
     return Gamma
 
 
-def optimalShrinkage(X, return_covariance=False):
+def optimalShrinkage(X, return_covariance=False, method='rie'):
     """This function computes a cleaned, optimal shrinkage, 
        rotationally-invariant estimator (RIE) of the true correlation 
        matrix C underlying the noisy, in-sample estimate 
@@ -473,8 +487,16 @@ def optimalShrinkage(X, return_covariance=False):
        explained by Ledoit and Peche (cf. reference below). Their procedure
        was extended by Bun, Bouchaud and Potters, who also correct
        for a systematic downward bias in small eigenvalues.
+       
        It is this debiased, optimal shrinkage, rotationally-invariant
-       estimator that the function at hand implements. 
+       estimator that the function at hand implements.
+       
+       In addition to above method, this funtion also provides access to:  
+       - The finite N regularization of the optimal RIE for small eigenvalues
+         as provided in section 8.1 of [3] a.k.a the inverse wishart (IW) regularization.
+       - The direct kernel method of O. Ledoit and M. Wolf in their 2017 paper [4]. 
+         This is a direct port of their Matlab code.
+        
          
        Parameter
        ---------
@@ -482,11 +504,18 @@ def optimalShrinkage(X, return_covariance=False):
            of samples (think measurements in a time series), while N
            stands for the number of features (think of stock tickers).
            
-        return_covariance: type bool (default: False)
+       return_covariance: type bool (default: False)
            If set to True, compute the standard deviations of each individual
            feature across observations, clean the underlying matrix
            of pairwise correlations, then re-apply the standard
            deviations and return a cleaned variance-covariance matrix.
+       
+       method: type string, optional (default="rie")
+           - If "rie" : optimal shrinkage in the manner of Bun & al.
+            with no regularisation  
+           - If "iw" : optimal shrinkage in the manner of Bun & al.
+            with the so called Inverse Wishart regularization
+           - If 'kernel': Direct kernel method of Ledoit  Wolf.
 
        Returns
        -------
@@ -503,15 +532,18 @@ def optimalShrinkage(X, return_covariance=False):
 
        References
        ----------
-       * "Eigenvectors of some large sample covariance matrix ensembles",
+       1 "Eigenvectors of some large sample covariance matrix ensembles",
          O. Ledoit and S. Peche
          Probability Theory and Related Fields, Vol. 151 (1), pp 233-264
-       * "Rotational invariant estimator for general noisy matrices",
+       2 "Rotational invariant estimator for general noisy matrices",
          J. Bun, R. Allez, J.-P. Bouchaud and M. Potters
          arXiv: 1502.06736 [cond-mat.stat-mech]
-       * "Cleaning large Correlation Matrices: tools from Random Matrix Theory",
+       3 "Cleaning large Correlation Matrices: tools from Random Matrix Theory",
          J. Bun, J.-P. Bouchaud and M. Potters
          arXiv: 1610.08104 [cond-mat.stat-mech]
+       4 "Direct Nonlinear Shrinkage Estimation of Large-Dimensional Covariance Matrices (September 2017)", 
+         O. Ledoit and M. Wolf https://ssrn.com/abstract=3047302 or http://dx.doi.org/10.2139/ssrn.3047302
+ 
     """
     
     try:
@@ -547,15 +579,20 @@ def optimalShrinkage(X, return_covariance=False):
                            # the spectrum of a Hermitian or symmetric
                            # matrix - namely np.linalg.eigh - returns
                            # the eigenvalues in ascending order.
-
-    xis = map(lambda x: xiHelper(x, q, E), eigvals)
-    Gammas = map(lambda x: gammaHelper(x, q, N, lambda_N), eigvals)
-    xi_hats = map(lambda a, b: a * b if b > 1 else a, xis, Gammas)
-
+    lambda_hats=None
+    if not method == 'kernel':
+        use_inverse_wishart= (method=='iw')
+        xis = map(lambda x: xiHelper(x, q, E), eigvals)
+        Gammas = map(lambda x: gammaHelper(x, q, N, lambda_N,inverse_wishart=use_inverse_wishart), eigvals)
+        xi_hats = map(lambda a, b: a * b if b > 1 else a, xis, Gammas)
+        lambda_hats= xi_hats
+    else:
+         lambda_hats = direct_kernel(q, T, N, eigvals)
+        
     E_RIE = np.zeros((N, N), dtype=float)
-    for xi_hat, eigvec in zip(xi_hats, eigvecs):
+    for lambda_hat, eigvec in zip(lambda_hats, eigvecs):
         eigvec = eigvec.reshape(-1, 1)
-        E_RIE += xi_hat * eigvec.dot(eigvec.T)
+        E_RIE += lambda_hat * eigvec.dot(eigvec.T)
         
     tmp = 1./np.sqrt(np.diag(E_RIE))
     E_RIE *= tmp
@@ -568,6 +605,97 @@ def optimalShrinkage(X, return_covariance=False):
 
     return E_RIE
 
+def direct_kernel(q, T, N, eigvals):
+    """This function computes a non linear shrinkage estimator of a covariance marix
+       based on the spectral distribution of its eigenvalues and that of its Hilbert Tranform.
+       This is an extension of Ledoit & Péché(2011).
+       
+       This is a port of the Matlab code provided by O. Ledoit and M .Wolf. This port 
+       uses the Pool Adjacent Violatator (PAV) algorithm by  Alexandre Gramfort 
+       (EMAP toolbox)
+                
+       Parameter
+       ---------
+       q: type derived from numbers.Real
+           Ratio of N/T
+           
+       T: type derived from numbers.Integral
+          Number of samples
+    
+       N: type derived from numbers.Integral
+           Dimension of a correlation matrix
+       
+       eigvals: Vector of the covariance matrix eigenvalues
+       
+       Returns
+       -------
+       dhats: A vector of eigenvalues estimates
+       
+       References
+       ----------
+       * "Eigenvectors of some large sample covariance matrix ensembles",
+         O. Ledoit and S. Peche (2011)
+       * "Direct Nonlinear Shrinkage Estimation of Large-Dimensional Covariance Matrices (September 2017)", 
+         O. Ledoit and M. Wolf https://ssrn.com/abstract=3047302 or http://dx.doi.org/10.2139/ssrn.3047302
+ 
+    """
+    # compute direct kernel estimator
+    lmbda = eigvals[max(0, N - T):].T  # transpose to have a column vector
+    h = np.power(T, -0.35)  # Equation (5.4)
+    h2 = h ** 2
+    L = matlib.repmat(lmbda, N, 1).T
+    Lt = L.transpose()
+    square_Lt = h2 * (Lt ** 2)
+    zero = np.zeros((N, N))
+    
+    ftilde = np.mean(np.sqrt(np.maximum(4 * square_Lt - (L - Lt) ** 2, zero)) / (2 * np.pi * square_Lt), axis=0) # Equation (5.2)
+    Hftilde = np.mean((np.sign(L - Lt) * np.sqrt(np.maximum((L - Lt) ** 2 - 4 * square_Lt, zero)) - L + Lt) / (2 * np.pi * square_Lt), axis=1)  # Equation (5.3)
+    
+    if N <= T:
+        dtilde = lmbda / ((np.pi * q * lmbda * ftilde) ** 2 + (1 - q - np.pi * q * lmbda * Hftilde) ** 2)  # Equation (4.3)
+    else:
+        Hftilde0 = (1 - np.sqrt(1 - 4 * h2)) / (2 * np.pi * h2) * np.mean(1. / lmbda)  # Equation (C.8)
+        dtilde0 = 1 / (np.pi * (N - T) / T * Hftilde0)  # Equation (C.5)
+        dtilde1 = lmbda / ((np.pi ** 2) * (lmbda ** 2) * (ftilde ** 2 + Hftilde ** 2))  # Equation (C.4)
+        dtilde = np.concatenate(np.dot(dtilde0, np.ones(N - T, 1, np.float)), dtilde1)
+    dhats = pav(dtilde) # Equation (4.5)
+    
+    return dhats
+
+# Author : Alexandre Gramfort
+# license : BSD
+def pav(y):
+    """
+    PAV uses the pair adjacent violators method to produce a monotonic
+    smoothing of y
+    translated from matlab by Sean Collins (2006) as part of the EMAP toolbox
+    """
+    y = np.asarray(y)
+    assert y.ndim == 1
+    n_samples = len(y)
+    v = y.copy()
+    lvls = np.arange(n_samples)
+    lvlsets = np.c_[lvls, lvls]
+    flag = 1
+    while flag:
+        deriv = np.diff(v)
+        if np.all(deriv >= 0):
+            break
+
+        viol = np.where(deriv < 0)[0]
+        start = lvlsets[viol[0], 0]
+        last = lvlsets[viol[0] + 1, 1]
+        s = 0
+        n = last - start + 1
+        for i in range(start, last + 1):
+            s += v[i]
+
+        val = s / n
+        for i in range(start, last + 1):
+            v[i] = val
+            lvlsets[i, 0] = start
+            lvlsets[i, 1] = last
+    return v
 
 if __name__ == '__main__':
 
