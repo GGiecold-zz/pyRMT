@@ -68,13 +68,13 @@ Attribution
 
 If you happen to use pyRMT in your work or research, please cite its GitHub repository:
 
-G. Giecold, pyRMT, (2017), GitHub repository, https://github.com/GGiecold/pyRMT
+G. Giecold and L. Ouaknin, pyRMT, (2017), GitHub repository, https://github.com/GGiecold/pyRMT
 
 The respective BibTex entry is
 
 ```
-@misc{GregoryGiecold2017,
-  author = {G. Giecold},
+@misc{GiecoldOuaknin2017,
+  author = {G. Giecold and L. Ouaknin},
   title = {pyRMT},
   year = {2017},
   publisher = {GitHub},
