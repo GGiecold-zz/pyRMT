@@ -688,6 +688,7 @@ def poolAdjacentViolators(y):
         assert y.ndim == 1
     except AssertionError:
       raise
+      sys.exit(1)
       
     n_samples = len(y)
     v = y.copy()
