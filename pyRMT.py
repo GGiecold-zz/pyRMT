@@ -641,28 +641,37 @@ def directKernel(q, T, N, eigvals):
     """
     
     # compute direct kernel estimator
-    lmbda = eigvals[max(0, N - T):].T  # transpose to have a column vector
-    h = np.power(T, -0.35)  # Equation (5.4)
-    h2 = h ** 2
-    L = np.matlib.repmat(lmbda, N, 1).T
-    Lt = L.transpose()
-    square_Lt = h2 * (Lt ** 2)
-    zero = np.zeros((N, N))
+    lambdas = eigvals[max(0, N - T):].T  # transpose to have a column vector
     
-    ftilde = np.mean(np.sqrt(np.maximum(4 * square_Lt - (L - Lt) ** 2, zero)) / (2 * np.pi * square_Lt), axis=0) # Equation (5.2)
-    Hftilde = np.mean((np.sign(L - Lt) * np.sqrt(np.maximum((L - Lt) ** 2 - 4 * square_Lt, zero)) - L + Lt) / (2 * np.pi * square_Lt), axis=1)  # Equation (5.3)
+    h = np.power(T, -0.35)  # Equation (5.4)
+    h_squared = h ** 2
+    
+    L = np.matlib.repmat(lambdas, N, 1).T
+    Lt = L.transpose()
+    square_Lt = h_squared * (Lt ** 2)
+    
+    zeros = np.zeros((N, N))
+    
+    tmp = np.sqrt(np.maximum(4 * square_Lt - (L - Lt) ** 2, zeros)) / (2 * np.pi * square_Lt)
+    f_tilde = np.mean(tmp, axis=0)    # Equation (5.2)
+    
+    tmp = np.sign(L - Lt) * np.sqrt(np.maximum((L - Lt) ** 2 - 4 * square_Lt, zeros)) - L + Lt 
+    tmp /= 2 * np.pi * square_Lt
+    Hf_tilde = np.mean(tmp, axis=1)    # Equation (5.3)
     
     if N <= T:
-        dtilde = lmbda / ((np.pi * q * lmbda * ftilde) ** 2 + (1 - q - np.pi * q * lmbda * Hftilde) ** 2)  # Equation (4.3)
+        tmp = (np.pi * q * lambdas * f_tilde) ** 2
+        tmp += (1 - q - np.pi * q * lambdas * Hf_tilde) ** 2
+        d_tilde = lambdas / tmp    # Equation (4.3)
     else:
-        Hftilde0 = (1 - np.sqrt(1 - 4 * h2)) / (2 * np.pi * h2) * np.mean(1. / lmbda)  # Equation (C.8)
-        dtilde0 = 1 / (np.pi * (N - T) / T * Hftilde0)  # Equation (C.5)
-        dtilde1 = lmbda / ((np.pi ** 2) * (lmbda ** 2) * (ftilde ** 2 + Hftilde ** 2))  # Equation (C.4)
-        dtilde = np.concatenate(np.dot(dtilde0, np.ones(N - T, 1, np.float)), dtilde1)
+        Hf_tilde_0 = (1 - np.sqrt(1 - 4 * h_squared)) / (2 * np.pi * h_squared) * np.mean(1. / lambdas)  # Equation (C.8)
+        d_tilde_0 = 1 / (np.pi * (N - T) / T * Hf_tilde_0)  # Equation (C.5)
+        d_tilde_1 = lambdas / ((np.pi ** 2) * (lambdas ** 2) * (f_tilde ** 2 + Hf_tilde ** 2))  # Equation (C.4)
+        d_tilde = np.concatenate(np.dot(d_tilde_0, np.ones(N - T, 1, np.float)), d_tilde_1)
         
-    dhats = poolAdjacentViolators(dtilde) # Equation (4.5)
+    d_hats = poolAdjacentViolators(d_tilde) # Equation (4.5)
     
-    return dhats
+    return d_hats
 
   
 # Author : Alexandre Gramfort
@@ -674,7 +683,12 @@ def poolAdjacentViolators(y):
     """
     
     y = np.asarray(y)
-    assert y.ndim == 1
+    
+    try:
+        assert y.ndim == 1
+    except AssertionError:
+      raise
+      
     n_samples = len(y)
     v = y.copy()
     lvls = np.arange(n_samples)
@@ -685,9 +699,9 @@ def poolAdjacentViolators(y):
         if np.all(deriv >= 0):
             break
 
-        viol = np.where(deriv < 0)[0]
-        start = lvlsets[viol[0], 0]
-        last = lvlsets[viol[0] + 1, 1]
+        violator = np.where(deriv < 0)[0]
+        start = lvlsets[violator[0], 0]
+        last = lvlsets[violator[0] + 1, 1]
         s = 0
         n = last - start + 1
         for i in range(start, last + 1):
